@@ -42,9 +42,7 @@ class CoveragePyTask(TaskExtensionPoint):
                 'No .coverage files for package {pkg.name} of type {pkg.type}'.format_map(locals())
             )
             return 0
-        logger.info(
-            'Coverage files for package {pkg.name}: {coverage_files}'.format_map(locals())
-        )
+        logger.info('Coverage files for package {pkg.name}: {coverage_files}'.format_map(locals()))
 
         # Copy .coverage files to a new directory, because combining files deletes them
         coveragepy_dir = self.get_package_combine_dir(args.build_base, pkg.name)
@@ -58,10 +56,10 @@ class CoveragePyTask(TaskExtensionPoint):
             copy2(original, copy)
 
         # Combine .coverage files
-        rc, stdout, stderr = coverage_combine(coverage_files_copies, coveragepy_dir)
+        rc, stdout, _ = coverage_combine(coverage_files_copies, coveragepy_dir)
         if 0 == rc.returncode and args.verbose:
             # Report
-            rc, stdout, stderr = coverage_report(coveragepy_dir, args.coverage_report_args)
+            rc, stdout, _ = coverage_report(coveragepy_dir, args.coverage_report_args)
             if 0 == rc.returncode:
                 print('\n' + stdout.decode())
         return rc.returncode

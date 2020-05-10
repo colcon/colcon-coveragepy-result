@@ -44,7 +44,7 @@ class CoveragePyResultVerb(VerbExtensionPoint):
         parser.add_argument(
             '--coveragepy-base',
             default='coveragepy',
-            help='The path for coveragepy artifacts (default: %(default)s)',
+            help='The path for coveragepy artifacts and outputs (default: %(default)s)',
         )
         parser.add_argument(
             '--coverage-report-args',
@@ -93,7 +93,7 @@ class CoveragePyResultVerb(VerbExtensionPoint):
             jobs[pkg.name] = job
         rc = execute_jobs(context, jobs)
 
-        # Combine all packages' .coverage files
+        # Get all packages' .coverage files
         coverage_files = [
             str(Path(CoveragePyTask.get_package_combine_dir(build_base, pkg.name)) / '.coverage')
             for pkg in coveragepy_pkgs
@@ -101,22 +101,26 @@ class CoveragePyResultVerb(VerbExtensionPoint):
         # Filter out non-existing files in case processing failed for some packages
         coverage_files = list(filter(os.path.exists, coverage_files))
         logger.info('Coverage files: {coverage_files}'.format_map(locals()))
+
+        # Combine .coverage files
         coveragepy_base_dir = str(os.path.abspath(context.args.coveragepy_base))
         Path(coveragepy_base_dir).mkdir(exist_ok=True)
-        rc, stdout, stderr = coverage_combine(coverage_files, coveragepy_base_dir)
+        rc, stdout, _ = coverage_combine(coverage_files, coveragepy_base_dir)
         if 0 == rc.returncode and context.args.verbose:
-            rc, stdout, stderr = coverage_report(
+            # Print report
+            rc, stdout, _ = coverage_report(
                 coveragepy_base_dir,
                 context.args.coverage_report_args,
             )
             if 0 == rc.returncode:
                 print('\n' + stdout.decode())
-        rc, stdout, stderr = coverage_html(coveragepy_base_dir, context.args.coverage_html_args)
+        # Generate HTML report
+        rc, stdout, _ = coverage_html(coveragepy_base_dir, context.args.coverage_html_args)
         return rc.returncode
 
     @staticmethod
     def _get_coveragepy_packages(context, additional_argument_names=None):
-        """Get packages that have coverage.py results."""
+        """Get packages that could have coverage.py results."""
         descriptors = get_package_descriptors(
             context.args,
             additional_argument_names=additional_argument_names,
