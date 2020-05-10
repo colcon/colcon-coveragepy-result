@@ -1,0 +1,26 @@
+name: Package
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Check release tag vs colcon_coveragepy_result.__version__
+      run: |
+        python3 -c "import colcon_coveragepy_result; assert colcon_coveragepy_result.__version__ == '${GITHUB_REF/refs\/tags\//}', 'git tag and colcon_coveragepy_result version do not match'"
+    - name: Generate package
+      run: |
+        python3 -m pip install --user --upgrade setuptools wheel
+        python3 setup.py sdist bdist_wheel
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
