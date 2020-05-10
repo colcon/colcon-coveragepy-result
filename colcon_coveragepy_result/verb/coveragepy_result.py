@@ -21,6 +21,7 @@ from colcon_core.verb import check_and_mark_build_tool
 from colcon_core.verb import VerbExtensionPoint
 
 from ..task.coveragepy import coverage_combine
+from ..task.coveragepy import coverage_html
 from ..task.coveragepy import coverage_report
 from ..task.coveragepy import CoveragePyTask
 
@@ -51,6 +52,13 @@ class CoveragePyResultVerb(VerbExtensionPoint):
             help="Pass arguments to 'coverage report'. Arguments matching "
                  'other options must be prefixed by a space, '
                  'e.g. --coverage-report-args " --help"',
+        )
+        parser.add_argument(
+            '--coverage-html-args',
+            nargs='*', metavar='*', type=str.lstrip,
+            help="Pass arguments to 'coverage html'. Arguments matching "
+                 'other options must be prefixed by a space, '
+                 'e.g. --coverage-html-args " --help"',
         )
         parser.add_argument(
             '--verbose',
@@ -103,6 +111,7 @@ class CoveragePyResultVerb(VerbExtensionPoint):
             )
             if 0 == rc.returncode:
                 print('\n' + stdout.decode())
+        rc, stdout, stderr = coverage_html(coveragepy_base_dir, context.args.coverage_html_args)
         return rc.returncode
 
     @staticmethod
