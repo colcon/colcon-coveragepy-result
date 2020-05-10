@@ -74,6 +74,7 @@ class CoveragePyTask(TaskExtensionPoint):
 def coverage_combine(files, cwd):
     """Combine .coverage files."""
     cmd = ['coverage', 'combine'] + files
+    logger.debug('Running command {cmd} in {cwd}'.format_map(locals()))
     process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if 0 != process.returncode:
@@ -84,6 +85,7 @@ def coverage_combine(files, cwd):
 def coverage_html(cwd, additional_args):
     """Create an HTML report from a .coverage file."""
     cmd = ['coverage', 'html'] + (additional_args or [])
+    logger.debug('Running command {cmd} in {cwd}'.format_map(locals()))
     process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if 0 != process.returncode:
@@ -94,6 +96,7 @@ def coverage_html(cwd, additional_args):
 def coverage_report(cwd, additional_args):
     """Produce a report for a .coverage file."""
     cmd = ['coverage', 'report'] + (additional_args or [])
+    logger.debug('Running command {cmd} in {cwd}'.format_map(locals()))
     process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if 0 != process.returncode:
