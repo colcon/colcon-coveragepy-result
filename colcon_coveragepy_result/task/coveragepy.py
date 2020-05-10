@@ -27,16 +27,25 @@ class CoveragePyTask(TaskExtensionPoint):
         pkg = self.context.pkg
         args = self.context.args
 
+        # Check if the package has been built
+        pkg_build_path = Path(os.path.abspath(os.path.join(args.build_base, pkg.name)))
+        if not pkg_build_path.exists():
+            logger.info(
+                'Skipping package {pkg.name} since it has not been built'.format_map(locals())
+            )
+            return 0
+
         logger.info('Running coverage.py on {pkg.name}'.format_map(locals()))
 
         # Get list of .coverage files, depending on package type
-        pkg_build_path = Path(os.path.abspath(os.path.join(args.build_base, pkg.name)))
         coverage_files = []
         if 'ros.ament_cmake' == pkg.type:
             coverage_files.extend(glob(str(pkg_build_path / 'pytest_cov/*/.coverage')))
         elif 'ros.ament_python' == pkg.type:
             coverage_files.append(str(pkg_build_path / '.coverage'))
 
+        # Filter out non-existing files in case they have not been generated
+        coverage_files = list(filter(os.path.exists, coverage_files))
         if 0 == len(coverage_files):
             logger.warning(
                 'No .coverage files for package {pkg.name} of type {pkg.type}'.format_map(locals())
