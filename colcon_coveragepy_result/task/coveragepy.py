@@ -31,11 +31,11 @@ class CoveragePyTask(TaskExtensionPoint):
         pkg_build_path = Path(os.path.abspath(os.path.join(args.build_base, pkg.name)))
         if not pkg_build_path.exists():
             logger.info(
-                'Skipping package {pkg.name} since it has not been built'.format_map(locals())
+                "Skipping package '{pkg.name}' since it has not been built".format_map(locals())
             )
             return 0
 
-        logger.info('Running coverage.py on {pkg.name}'.format_map(locals()))
+        logger.info("Running coveragepy task on package '{pkg.name}'".format_map(locals()))
 
         # Get list of .coverage files, depending on package type
         coverage_files = []
@@ -48,10 +48,13 @@ class CoveragePyTask(TaskExtensionPoint):
         coverage_files = list(filter(os.path.exists, coverage_files))
         if 0 == len(coverage_files):
             logger.warning(
-                'No .coverage files for package {pkg.name} of type {pkg.type}'.format_map(locals())
+                "No .coverage files found for package '{pkg.name}' of type '{pkg.type}'"
+                .format_map(locals())
             )
             return 0
-        logger.info('Coverage files for package {pkg.name}: {coverage_files}'.format_map(locals()))
+        logger.info(
+            "Coverage files for package '{pkg.name}': {coverage_files}".format_map(locals())
+        )
 
         # Copy .coverage files to a new directory, because combining files deletes them
         coveragepy_dir = self.get_package_combine_dir(args.build_base, pkg.name)

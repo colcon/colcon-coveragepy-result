@@ -139,7 +139,7 @@ class CoveragePyResultVerb(VerbExtensionPoint):
                 coveragepy_pkgs.append(pkg)
             else:
                 logger.info(
-                    'Specified package {pkg.name} is not a coverage.py-compatible '
+                    "Specified package '{pkg.name}' is not a coverage.py-compatible "
                     'package. Not collecting coverage information.'.format_map(locals())
                 )
         return coveragepy_pkgs
