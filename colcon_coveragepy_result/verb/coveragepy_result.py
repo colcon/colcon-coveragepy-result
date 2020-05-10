@@ -100,6 +100,9 @@ class CoveragePyResultVerb(VerbExtensionPoint):
         ]
         # Filter out non-existing files in case processing failed for some packages
         coverage_files = list(filter(os.path.exists, coverage_files))
+        if 0 == len(coverage_files):
+            logger.warning('No coverage files found')
+            return 0
         logger.info('Coverage files: {coverage_files}'.format_map(locals()))
 
         # Combine .coverage files
