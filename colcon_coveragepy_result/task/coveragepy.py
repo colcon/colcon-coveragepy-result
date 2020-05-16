@@ -73,7 +73,7 @@ class CoveragePyTask(TaskExtensionPoint):
             # Report
             rc, stdout, _ = coverage_report(coveragepy_dir, args.coverage_report_args)
             if 0 == rc.returncode:
-                print('\n' + stdout.decode())
+                print('\n' + stdout)
         return rc.returncode
 
     @staticmethod
@@ -83,34 +83,32 @@ class CoveragePyTask(TaskExtensionPoint):
         return str(os.path.abspath(os.path.join(pkg_build_dir, 'coveragepy')))
 
 
-def coverage_combine(files, cwd):
-    """Combine .coverage files."""
-    cmd = ['coverage', 'combine'] + files
-    logger.debug('Running command {cmd} in {cwd}'.format_map(locals()))
+def run(cmd, cwd=None):
+    """Run command in given current working directory."""
+    cmd_str = ' '.join(cmd)
+    logger.debug("Running command '{cmd_str}' in {cwd}".format_map(locals()))
     process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if 0 != process.returncode:
-        logger.error('coverage_combine() failed: ' + stderr.decode())
-    return process, stdout, stderr
+        stderr_decoded = stderr.decode()
+        logger.error("Command '{cmd_str}' failed: {stderr_decoded}".format_map(locals()))
+    return process, stdout.decode(), stderr.decode()
+
+
+def coverage_combine(files, cwd):
+    """Combine .coverage files."""
+    assert files, 'must combine at least one file'
+    cmd = ['coverage', 'combine'] + files
+    return run(cmd, cwd)
 
 
 def coverage_html(cwd, additional_args):
     """Create an HTML report from a .coverage file."""
     cmd = ['coverage', 'html'] + (additional_args or [])
-    logger.debug('Running command {cmd} in {cwd}'.format_map(locals()))
-    process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    if 0 != process.returncode:
-        logger.error('coverage_html() failed: ' + stderr.decode())
-    return process, stdout, stderr
+    return run(cmd, cwd)
 
 
 def coverage_report(cwd, additional_args):
     """Produce a report for a .coverage file."""
     cmd = ['coverage', 'report'] + (additional_args or [])
-    logger.debug('Running command {cmd} in {cwd}'.format_map(locals()))
-    process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    if 0 != process.returncode:
-        logger.error('coverage_report() failed: ' + stderr.decode())
-    return process, stdout, stderr
+    return run(cmd, cwd)

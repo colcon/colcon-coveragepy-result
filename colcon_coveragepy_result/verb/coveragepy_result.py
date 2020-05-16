@@ -116,7 +116,7 @@ class CoveragePyResultVerb(VerbExtensionPoint):
                 context.args.coverage_report_args,
             )
             if 0 == rc.returncode:
-                print('\n' + stdout.decode())
+                print('\n' + stdout)
         # Generate HTML report
         rc, stdout, _ = coverage_html(coveragepy_base_dir, context.args.coverage_html_args)
         return rc.returncode
