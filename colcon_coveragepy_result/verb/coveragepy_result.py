@@ -24,6 +24,7 @@ from ..task.coveragepy import coverage_combine
 from ..task.coveragepy import coverage_html
 from ..task.coveragepy import coverage_report
 from ..task.coveragepy import CoveragePyTask
+from ..task.coveragepy import has_coverage_command
 
 logger = colcon_logger.getChild(__name__)
 
@@ -74,8 +75,18 @@ class CoveragePyResultVerb(VerbExtensionPoint):
         build_base = context.args.build_base
         check_and_mark_build_tool(build_base)
 
-        # Combine each package's .coverage files
+        # Check once if the 'coverage' command is available,
+        # otherwise we will need to fall back on using the Python module
+        has_command = has_coverage_command()
+        logger.info("'coverage' command available: {has_command}".format_map(locals()))
+
+        # Get packages
         coveragepy_pkgs = self._get_coveragepy_packages(context)
+        if not coveragepy_pkgs:
+            logger.warning('No packages selected or found')
+            return 0
+
+        # Combine each package's .coverage files
         jobs = OrderedDict()
         for pkg in coveragepy_pkgs:
             task_context = TaskContext(
@@ -83,7 +94,7 @@ class CoveragePyResultVerb(VerbExtensionPoint):
                 args=context.args,
                 dependencies=OrderedDict(),
             )
-            task = CoveragePyTask()
+            task = CoveragePyTask(has_command)
             job = Job(
                 identifier=pkg.name,
                 dependencies=set(),
@@ -109,17 +120,17 @@ class CoveragePyResultVerb(VerbExtensionPoint):
         coveragepy_base_dir = str(os.path.abspath(context.args.coveragepy_base))
         Path(coveragepy_base_dir).mkdir(exist_ok=True)
         rc, stdout, _ = coverage_combine(coverage_files, coveragepy_base_dir)
-        if 0 == rc.returncode and context.args.verbose:
+        if 0 == rc and context.args.verbose:
             # Print report
             rc, stdout, _ = coverage_report(
                 coveragepy_base_dir,
                 context.args.coverage_report_args,
             )
-            if 0 == rc.returncode:
+            if 0 == rc:
                 print('\n' + stdout)
         # Generate HTML report
         rc, stdout, _ = coverage_html(coveragepy_base_dir, context.args.coverage_html_args)
-        return rc.returncode
+        return rc
 
     @staticmethod
     def _get_coveragepy_packages(context, additional_argument_names=None):
