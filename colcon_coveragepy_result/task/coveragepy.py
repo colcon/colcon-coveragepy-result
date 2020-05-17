@@ -19,9 +19,10 @@ class CoveragePyTask(TaskExtensionPoint):
 
     TASK_NAME = 'coveragepy'
 
-    def __init__(self):  # noqa: D107
+    def __init__(self, has_command=True):  # noqa: D107
         super().__init__()
         satisfies_version(TaskExtensionPoint.EXTENSION_POINT_VERSION, '^1.0')
+        self.__has_command = has_command
 
     async def coveragepy(self, *, additional_hooks=None):  # noqa: D102
         pkg = self.context.pkg
@@ -68,13 +69,21 @@ class CoveragePyTask(TaskExtensionPoint):
             copy2(original, copy)
 
         # Combine .coverage files
-        rc, stdout, _ = coverage_combine(coverage_files_copies, coveragepy_dir)
-        if 0 == rc.returncode and args.verbose:
+        rc, stdout, _ = coverage_combine(
+            coverage_files_copies,
+            coveragepy_dir,
+            self.__has_command,
+        )
+        if 0 == rc and args.verbose:
             # Report
-            rc, stdout, _ = coverage_report(coveragepy_dir, args.coverage_report_args)
-            if 0 == rc.returncode:
+            rc, stdout, _ = coverage_report(
+                coveragepy_dir,
+                args.coverage_report_args,
+                self.__has_command,
+            )
+            if 0 == rc:
                 print('\n' + stdout)
-        return rc.returncode
+        return rc
 
     @staticmethod
     def get_package_combine_dir(build_base, pkg_name):
@@ -83,32 +92,57 @@ class CoveragePyTask(TaskExtensionPoint):
         return str(os.path.abspath(os.path.join(pkg_build_dir, 'coveragepy')))
 
 
-def run(cmd, cwd=None):
+def run(cmd, cwd=None, ignore_errors=False):
     """Run command in given current working directory."""
     cmd_str = ' '.join(cmd)
     logger.debug("Running command '{cmd_str}' in {cwd}".format_map(locals()))
-    process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    if 0 != process.returncode:
-        stderr_decoded = stderr.decode()
-        logger.error("Command '{cmd_str}' failed: {stderr_decoded}".format_map(locals()))
-    return process, stdout.decode(), stderr.decode()
+    return_code = 1
+    out = ''
+    err = 'failed to run command'
+    try:
+        process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        out = stdout.decode()
+        err = stderr.decode()
+        return_code = process.returncode
+    except Exception as e:
+        return_code = 1
+        err = str(e)
+    if 0 != return_code and not ignore_errors:
+        logger.error("Command '{cmd_str}' failed: {err}".format_map(locals()))
+    return return_code, out, err
 
 
-def coverage_combine(files, cwd):
+def has_coverage_command():
+    """
+    Check if the 'coverage' command is available.
+
+    Not all installations include the 'coverage' command.
+    """
+    return run(['coverage', '--help'], ignore_errors=True)[0] == 0
+
+
+def run_coverage(cmd, cwd, has_coverage_command=True):
+    """Run coverage command in a specific directory."""
+    if not has_coverage_command:
+        cmd = ['python3', '-m'] + cmd
+    return run(cmd, cwd)
+
+
+def coverage_combine(files, cwd, has_coverage_command=True):
     """Combine .coverage files."""
     assert files, 'must combine at least one file'
     cmd = ['coverage', 'combine'] + files
-    return run(cmd, cwd)
+    return run_coverage(cmd, cwd, has_coverage_command)
 
 
-def coverage_html(cwd, additional_args):
+def coverage_html(cwd, additional_args, has_coverage_command=True):
     """Create an HTML report from a .coverage file."""
     cmd = ['coverage', 'html'] + (additional_args or [])
-    return run(cmd, cwd)
+    return run_coverage(cmd, cwd, has_coverage_command)
 
 
-def coverage_report(cwd, additional_args):
+def coverage_report(cwd, additional_args, has_coverage_command=True):
     """Produce a report for a .coverage file."""
     cmd = ['coverage', 'report'] + (additional_args or [])
-    return run(cmd, cwd)
+    return run_coverage(cmd, cwd, has_coverage_command)
