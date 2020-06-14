@@ -119,17 +119,22 @@ class CoveragePyResultVerb(VerbExtensionPoint):
         # Combine .coverage files
         coveragepy_base_dir = str(os.path.abspath(context.args.coveragepy_base))
         Path(coveragepy_base_dir).mkdir(exist_ok=True)
-        rc, stdout, _ = coverage_combine(coverage_files, coveragepy_base_dir)
+        rc, stdout, _ = coverage_combine(coverage_files, coveragepy_base_dir, has_command)
         if 0 == rc and context.args.verbose:
             # Print report
             rc, stdout, _ = coverage_report(
                 coveragepy_base_dir,
                 context.args.coverage_report_args,
+                has_command,
             )
             if 0 == rc:
                 print('\n' + stdout)
         # Generate HTML report
-        rc, stdout, _ = coverage_html(coveragepy_base_dir, context.args.coverage_html_args)
+        rc, stdout, _ = coverage_html(
+            coveragepy_base_dir,
+            context.args.coverage_html_args,
+            has_command,
+        )
         return rc
 
     @staticmethod
