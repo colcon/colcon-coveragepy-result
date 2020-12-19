@@ -4,10 +4,19 @@
 [![GitHub Action Status](https://github.com/colcon/colcon-coveragepy-result/workflows/Test/badge.svg)](https://github.com/colcon/colcon-coveragepy-result/actions)
 
 A [colcon](https://colcon.readthedocs.io/) extension for collecting [coverage.py](https://coverage.readthedocs.io/en/stable/) results.
+It provides the `coveragepy-result` command.
 
+## Install
+
+The corresponding package names are:
+
+* `apt`: `python3-colcon-coveragepy-result`
+* `pip`: `colcon-coveragepy-result`
+
+Refer to the [colcon installation instructions](https://colcon.readthedocs.io/en/released/user/installation.html) for more information.
 ## Usage
 
-1. Build packages with coverage, e.g. using a [colcon mixin](https://colcon.readthedocs.io/en/released/reference/verb/mixin.html) for [coverage](https://github.com/colcon/colcon-mixin-repository/blob/master/coverage.mixin)
+1. Build packages with coverage, e.g. using a [colcon mixin](https://colcon.readthedocs.io/en/released/reference/verb/mixin.html) for [coverage](https://github.com/colcon/colcon-mixin-repository/blob/master/coverage.mixin) (installation of the mixin is separate from this extension)
    ```shell
    $ colcon build --mixin coverage-pytest
    ```
@@ -15,12 +24,11 @@ A [colcon](https://colcon.readthedocs.io/) extension for collecting [coverage.py
    ```shell
    $ colcon test --mixin coverage-pytest
    ```
-1. Collect coverage results
+1. Collect coverage results using the `coveragepy-result` command provided by this extension
    ```shell
    $ colcon coveragepy-result
    ```
 1. Open HTML report, which by default is under `coveragepy/htmlcov/`
-
 
 ## Options
 
