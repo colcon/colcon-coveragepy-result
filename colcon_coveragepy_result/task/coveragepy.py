@@ -105,7 +105,7 @@ def run(cmd, cwd=None, ignore_errors=False):
         out = stdout.decode()
         err = stderr.decode()
         return_code = process.returncode
-    except Exception as e:
+    except Exception as e:  # noqa: B902
         return_code = 1
         err = str(e)
     if 0 != return_code and not ignore_errors:
