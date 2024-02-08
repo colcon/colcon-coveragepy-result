@@ -1,7 +1,7 @@
 # colcon-coveragepy-result
 
 [![PyPI](https://img.shields.io/pypi/v/colcon-coveragepy-result)](https://pypi.org/project/colcon-coveragepy-result/)
-[![GitHub Action Status](https://github.com/colcon/colcon-coveragepy-result/workflows/Test/badge.svg)](https://github.com/colcon/colcon-coveragepy-result/actions)
+[![GitHub Action Status](https://github.com/colcon/colcon-coveragepy-result/actions/workflows/ci.yaml/badge.svg?branch=master&event=push)](https://github.com/colcon/colcon-coveragepy-result/actions/workflows/ci.yaml?query=branch%3Amaster+event%3Apush)
 
 A [colcon](https://colcon.readthedocs.io/) extension for collecting [coverage.py](https://coverage.readthedocs.io/en/stable/) results.
 It provides the `coveragepy-result` command.
