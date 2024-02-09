@@ -4,12 +4,12 @@
 from pathlib import Path
 import sys
 
+import pytest
 
+
+@pytest.mark.linter
 def test_copyright_license():
-    missing = check_files([
-        Path(__file__).parents[1],
-        Path(__file__).parents[1] / 'bin' / 'colcon',
-    ])
+    missing = check_files([Path(__file__).parents[1]])
     assert not len(missing), \
         'In some files no copyright / license line was found'
 
